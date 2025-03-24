@@ -1,15 +1,34 @@
-// Именованные константы для главного меню
+// Константы для главного меню
 const val EXIT = 0
 const val SHOW_BOOKS = 1
 const val SHOW_NEWSPAPERS = 2
 const val SHOW_DISCS = 3
+const val STORE_MENU = 4
+const val DIGITIZATION_MENU = 5
 
-// Именованные константы для меню действий с объектом
+// Константы для меню действий с объектом
 const val TAKE_HOME = 1
 const val READ_IN_ROOM = 2
 const val SHOW_DETAILS = 3
 const val RETURN_ITEM = 4
 const val BACK = 0
+
+// Вспомогательная функция для преобразования номера месяца в кириллическое название
+fun getMonthName(month: Int): String = when (month) {
+    1 -> "Январь"
+    2 -> "Февраль"
+    3 -> "Март"
+    4 -> "Апрель"
+    5 -> "Май"
+    6 -> "Июнь"
+    7 -> "Июль"
+    8 -> "Август"
+    9 -> "Сентябрь"
+    10 -> "Октябрь"
+    11 -> "Ноябрь"
+    12 -> "Декабрь"
+    else -> "Неизвестный месяц"
+}
 
 // Абстрактный класс для объектов библиотеки
 abstract class LibraryItem(
@@ -48,13 +67,14 @@ class Newspaper(
     id: Int,
     isAvailable: Boolean,
     name: String,
-    val issueNumber: Int
+    val issueNumber: Int,
+    val month: Int
 ) : LibraryItem(id, isAvailable, name) {
     override fun getShortInfo(): String =
         "${getName()} доступна: ${if (isAvailable()) "Да" else "Нет"}"
 
     override fun getDetailedInfo(): String =
-        "выпуск: $issueNumber газеты ${getName()} с id: ${getId()} доступен: ${if (isAvailable()) "Да" else "Нет"}"
+        "выпуск: $issueNumber газеты ${getName()} (${getMonthName(month)}) с id: ${getId()} доступен: ${if (isAvailable()) "Да" else "Нет"}"
 }
 
 // Типы дисков
@@ -84,31 +104,60 @@ fun getTypeName(item: LibraryItem): String = when (item) {
     else -> "Объект"
 }
 
+// Интерфейс магазина
+interface Store<T : LibraryItem> {
+    fun sell(): T
+}
+
+// Магазин книг
+class BookStore : Store<Book> {
+    override fun sell(): Book =
+        Book(5001, true, "Новая книга", 350, "Неизвестный автор")
+}
+
+// Магазин дисков
+class DiscStore : Store<Disc> {
+    override fun sell(): Disc =
+        Disc(6001, true, "Новый диск", DiscType.DVD)
+}
+
+// Газетный ларек
+class NewspaperKiosk : Store<Newspaper> {
+    override fun sell(): Newspaper =
+        Newspaper(7001, true, "Новая газета", 101, 5)
+}
+
+// Сущность менеджера
+class Manager {
+    fun <T : LibraryItem> buy(store: Store<T>): T = store.sell()
+}
+
+// Кабинет оцифровки
+class DigitizationCabinet {
+    fun digitize(item: LibraryItem): Disc {
+        return Disc(8001, true, "Оцифрованный: ${item.getName()}", DiscType.CD)
+    }
+}
+
+// Inline функция для фильтрации объектов по типу с использованием reified
+inline fun <reified T> List<Any>.filterByType(): List<T> = filterIsInstance<T>()
+
 // Функция отображения главного меню и выбора списка объектов
 fun showMainMenu(
     books: MutableList<LibraryItem>,
     newspapers: MutableList<LibraryItem>,
     discs: MutableList<LibraryItem>
-): MutableList<LibraryItem>? {
+): Int {
     println("\n--- Главное меню ---")
     println("$SHOW_BOOKS. Показать книги")
     println("$SHOW_NEWSPAPERS. Показать газеты")
     println("$SHOW_DISCS. Показать диски")
+    println("$STORE_MENU. Магазин")
+    println("$DIGITIZATION_MENU. Кабинет оцифровки")
     println("$EXIT. Выход")
     print("Ваш выбор: ")
 
-    val choice = readLine()?.toIntOrNull() ?: return null
-    if (choice == EXIT) return null
-
-    return when (choice) {
-        SHOW_BOOKS -> books
-        SHOW_NEWSPAPERS -> newspapers
-        SHOW_DISCS -> discs
-        else -> {
-            println("Неверный выбор!")
-            null
-        }
-    }
+    return readLine()?.toIntOrNull() ?: -1
 }
 
 // Функция для выбора объекта из списка
@@ -184,28 +233,94 @@ fun processItemActions(selectedItem: LibraryItem) {
     }
 }
 
+// Функция интерфейса магазина
+fun storeInterface() {
+    val manager = Manager()
+    println("\n--- Магазин ---")
+    println("1. Купить книгу")
+    println("2. Купить диск")
+    println("3. Купить газету")
+    println("0. Вернуться в главное меню")
+    print("Ваш выбор: ")
+
+    when (readLine()?.toIntOrNull() ?: -1) {
+        1 -> {
+            val book = manager.buy(BookStore())
+            println("Куплена книга: ${book.getDetailedInfo()}")
+        }
+        2 -> {
+            val disc = manager.buy(DiscStore())
+            println("Куплен диск: ${disc.getDetailedInfo()}")
+        }
+        3 -> {
+            val newspaper = manager.buy(NewspaperKiosk())
+            println("Куплена газета: ${newspaper.getDetailedInfo()}")
+        }
+        else -> println("Возврат в главное меню")
+    }
+}
+
+// Функция интерфейса кабинета оцифровки
+fun digitizationInterface() {
+    val cabinet = DigitizationCabinet()
+    println("\n--- Кабинет оцифровки ---")
+    println("Выберите тип объекта для оцифровки:")
+    println("1. Книга")
+    println("2. Газета")
+    println("0. Вернуться в главное меню")
+    print("Ваш выбор: ")
+
+    when (readLine()?.toIntOrNull() ?: -1) {
+        1 -> {
+            // Демонстрация
+            val sampleBook = Book(90743, true, "Маугли", 202, "Джозеф Киплинг")
+            val disc = cabinet.digitize(sampleBook)
+            println("Книга '${sampleBook.getName()}' оцифрована в: ${disc.getDetailedInfo()}")
+        }
+        2 -> {
+            // Демонстрация
+            val sampleNewspaper = Newspaper(17245, true, "Сельская жизнь", 794, 3)
+            val disc = cabinet.digitize(sampleNewspaper)
+            println("Газета '${sampleNewspaper.getName()}' оцифрована в: ${disc.getDetailedInfo()}")
+        }
+        else -> println("Возврат в главное меню")
+    }
+}
+
 // Основная функция программы
 fun main() {
-    // Создаем списки объектов
+    // Создание списков объектов
     val books = mutableListOf<LibraryItem>(
         Book(90743, true, "Маугли", 202, "Джозеф Киплинг"),
         Book(1001, true, "Война и мир", 1225, "Лев Толстой")
     )
     val newspapers = mutableListOf<LibraryItem>(
-        Newspaper(17245, true, "Сельская жизнь", 794),
-        Newspaper(17246, true, "Новости дня", 123)
+        Newspaper(17245, true, "Сельская жизнь", 794, 4),
+        Newspaper(17246, true, "Новости дня", 123, 2)
     )
     val discs = mutableListOf<LibraryItem>(
         Disc(2001, true, "Дэдпул и Росомаха", DiscType.DVD),
-        Disc(2002, true, "Лучшие хиты 90х", DiscType.CD)
+        Disc(2002, true, "Лучшие хиты", DiscType.CD)
     )
 
     while (true) {
-        val currentList = showMainMenu(books, newspapers, discs) ?: break
-
-        val selectedItem = selectLibraryItem(currentList)
-        if (selectedItem != null) {
-            processItemActions(selectedItem)
+        when (val choice = showMainMenu(books, newspapers, discs)) {
+            SHOW_BOOKS, SHOW_NEWSPAPERS, SHOW_DISCS -> {
+                val currentList: MutableList<LibraryItem> = when (choice) {
+                    SHOW_BOOKS -> books
+                    SHOW_NEWSPAPERS -> newspapers
+                    SHOW_DISCS -> discs
+                    else -> mutableListOf()
+                }
+                val selectedItem = selectLibraryItem(currentList)
+                if (selectedItem != null) {
+                    processItemActions(selectedItem)
+                }
+            }
+            STORE_MENU -> storeInterface()
+            DIGITIZATION_MENU -> digitizationInterface()
+            EXIT -> break
+            else -> println("Неверный выбор!")
         }
     }
     println("Программа завершена.")
