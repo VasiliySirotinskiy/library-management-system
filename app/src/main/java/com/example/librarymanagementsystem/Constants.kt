@@ -10,6 +10,7 @@ const val STORE_MENU = 4
 const val DIGITIZATION_MENU = 5
 
 // Константы для меню действий с объектом
+
 const val TAKE_HOME = 1
 const val READ_IN_ROOM = 2
 const val SHOW_DETAILS = 3

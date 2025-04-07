@@ -7,6 +7,14 @@ out/
 
 ### Kotlin ###
 .kotlin/
+build/
+**/build/
+**/.gradle/
+gradle
+gradlew
+local
+settings.gradle
+build.gradle
 
 ### Eclipse ###
 .apt_generated

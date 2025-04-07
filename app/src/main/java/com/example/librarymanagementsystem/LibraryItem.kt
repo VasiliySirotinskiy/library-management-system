@@ -1,18 +1,19 @@
 package com.example.librarymanagementsystem
 
-// Абстрактный класс для объектов библиотеки и его реализации
+import java.io.Serializable
 
+// Абстрактный класс для объектов библиотеки
 abstract class LibraryItem(
     private val id: Int,
     private var isAvailable: Boolean,
-    private val name: String
-) {
+    val title: String
+) : Serializable {
     fun getId(): Int = id
     fun isAvailable(): Boolean = isAvailable
     fun setAvailability(availability: Boolean) {
         isAvailable = availability
     }
-    fun getName(): String = name
+    fun getName(): String = title
 
     abstract fun getShortInfo(): String
     abstract fun getDetailedInfo(): String
@@ -22,14 +23,14 @@ class Book(
     id: Int,
     isAvailable: Boolean,
     name: String,
-    private val pages: Int,
+    val pages: Int,
     val author: String
 ) : LibraryItem(id, isAvailable, name) {
     override fun getShortInfo(): String =
-        "${getName()} доступна: ${if (isAvailable()) "Да" else "Нет"}"
+        "$title доступна: ${if (isAvailable()) "Да" else "Нет"}"
 
     override fun getDetailedInfo(): String =
-        "Книга: ${getName()} ($pages стр.) автора: $author, id: ${getId()} доступна: ${if (isAvailable()) "Да" else "Нет"}"
+        "Книга: $title ($pages стр.) автора: $author, id: ${getId()} доступна: ${if (isAvailable()) "Да" else "Нет"}"
 }
 
 class Newspaper(
@@ -40,10 +41,10 @@ class Newspaper(
     val month: Int
 ) : LibraryItem(id, isAvailable, name) {
     override fun getShortInfo(): String =
-        "${getName()} доступна: ${if (isAvailable()) "Да" else "Нет"}"
+        "$title доступна: ${if (isAvailable()) "Да" else "Нет"}"
 
     override fun getDetailedInfo(): String =
-        "Газета: ${getName()}, выпуск: $issueNumber (${getMonthName(month)}), id: ${getId()} доступна: ${if (isAvailable()) "Да" else "Нет"}"
+        "Газета: $title, выпуск: $issueNumber (${getMonthName(month)}), id: ${getId()} доступна: ${if (isAvailable()) "Да" else "Нет"}"
 }
 
 enum class DiscType {
@@ -57,16 +58,8 @@ class Disc(
     val discType: DiscType
 ) : LibraryItem(id, isAvailable, name) {
     override fun getShortInfo(): String =
-        "${getName()} доступна: ${if (isAvailable()) "Да" else "Нет"}"
+        "$title доступна: ${if (isAvailable()) "Да" else "Нет"}"
 
     override fun getDetailedInfo(): String =
-        "Диск (${discType.name}): ${getName()} доступна: ${if (isAvailable()) "Да" else "Нет"}"
-}
-
-// Вспомогательная функция для получения названия типа объекта
-fun getTypeName(item: LibraryItem): String = when (item) {
-    is Book -> "Книга"
-    is Newspaper -> "Газета"
-    is Disc -> "Диск"
-    else -> "Объект"
+        "Диск (${discType.name}): $title доступна: ${if (isAvailable()) "Да" else "Нет"}"
 }

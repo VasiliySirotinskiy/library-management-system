@@ -1,13 +1,15 @@
 package com.example.librarymanagementsystem
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
+import android.content.Intent
+import java.io.Serializable
 
 class LibraryAdapter(private val libraryItems: MutableList<LibraryItem>) : RecyclerView.Adapter<LibraryAdapter.LibraryViewHolder>() {
 
@@ -25,6 +27,7 @@ class LibraryAdapter(private val libraryItems: MutableList<LibraryItem>) : Recyc
         return LibraryViewHolder(view)
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: LibraryViewHolder, position: Int) {
         val item = libraryItems[position]
 
@@ -50,11 +53,15 @@ class LibraryAdapter(private val libraryItems: MutableList<LibraryItem>) : Recyc
         }
         holder.itemIcon.setImageResource(iconRes)
 
-        // Обработка клика: показать Toast и изменить доступность
+        // Обработка клика
         holder.itemView.setOnClickListener {
-            Toast.makeText(holder.itemView.context, "Элемент с id #${item.getId()}#", Toast.LENGTH_SHORT).show()
-            item.setAvailability(!item.isAvailable())
-            notifyItemChanged(position)
+            val context = holder.itemView.context
+            // Запуск нового экрана для просмотра деталей
+            val intent = Intent(context, ItemDetailActivity::class.java).apply {
+                putExtra("libraryItem", item as Serializable)
+                putExtra("editable", false)
+            }
+            context.startActivity(intent)
         }
     }
 
