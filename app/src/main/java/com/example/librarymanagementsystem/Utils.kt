@@ -17,5 +17,12 @@ fun getMonthName(month: Int): String = when (month) {
     else -> "Неизвестный месяц"
 }
 
+fun getTypeName(item: LibraryItem): String = when (item) {
+    is Book -> "Книга"
+    is Newspaper -> "Газета"
+    is Disc -> "Диск"
+    else -> "Объект"
+}
+
 // Inline функция для фильтрации объектов по типу с использованием reified
 inline fun <reified T> List<Any>.filterByType(): List<T> = filterIsInstance<T>()
