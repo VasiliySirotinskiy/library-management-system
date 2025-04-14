@@ -4,15 +4,14 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.os.Bundle
 import android.widget.*
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import java.io.Serializable
-import kotlin.random.Random
 
 class ItemDetailActivity : AppCompatActivity() {
 
     private var editable: Boolean = false
     private var isNewItem: Boolean = false
-    private var currentItem: LibraryItem? = null
 
     private lateinit var imageViewIcon: ImageView
     private lateinit var editTextName: EditText
@@ -21,6 +20,9 @@ class ItemDetailActivity : AppCompatActivity() {
     private lateinit var editTextExtra2: EditText
     private lateinit var spinnerType: Spinner
     private lateinit var buttonSave: Button
+
+    // Получение ViewModel для экрана деталей
+    private val viewModel: ItemDetailViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,7 +38,9 @@ class ItemDetailActivity : AppCompatActivity() {
 
         editable = intent.getBooleanExtra("editable", false)
         isNewItem = intent.getBooleanExtra("isNewItem", false)
-        currentItem = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+
+        // Если передан уже существующий элемент - режим просмотра
+        val currentItem: LibraryItem? = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             intent.getSerializableExtra("libraryItem", LibraryItem::class.java)
         } else {
             @Suppress("DEPRECATION")
@@ -46,9 +50,10 @@ class ItemDetailActivity : AppCompatActivity() {
         if (currentItem != null) {
             // Режим просмотра существующего элемента
             editable = false
-            populateFields(currentItem!!)
+            viewModel.setItem(currentItem)
+            populateFields(currentItem)
         } else {
-            // Режим добавления нового элемента
+            // Режим добавления нового элемента: делаем видимым спиннер для выбора типа
             spinnerType.visibility = Spinner.VISIBLE
             val types = listOf("Книга", "Газета", "Диск")
             val adapterSpinner = ArrayAdapter(this, android.R.layout.simple_spinner_item, types)
@@ -60,33 +65,16 @@ class ItemDetailActivity : AppCompatActivity() {
 
         buttonSave.setOnClickListener {
             if (isNewItem) {
-                // Создание нового объекта выбранного типа
                 val type = spinnerType.selectedItem.toString()
                 val name = editTextName.text.toString()
                 if (name.isEmpty()) {
                     Toast.makeText(this, "Введите название", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
-                // Генерация случайного ID
-                val newId = Random.nextInt(1000, 10000)
-                val newItem: LibraryItem = when (type) {
-                    "Книга" -> {
-                        val pages = editTextExtra1.text.toString().toIntOrNull() ?: 0
-                        val author = editTextExtra2.text.toString()
-                        Book(newId, true, name, pages, author)
-                    }
-                    "Газета" -> {
-                        val issue = editTextExtra1.text.toString().toIntOrNull() ?: 0
-                        val month = editTextExtra2.text.toString().toIntOrNull() ?: 1
-                        Newspaper(newId, true, name, issue, month)
-                    }
-                    "Диск" -> {
-                        val discTypeStr = editTextExtra1.text.toString()
-                        val discType = if (discTypeStr.equals("CD", true)) DiscType.CD else DiscType.DVD
-                        Disc(newId, true, name, discType)
-                    }
-                    else -> Book(newId, true, name, 0, "")
-                }
+                val extra1 = editTextExtra1.text.toString()
+                val extra2 = editTextExtra2.text.toString()
+                // Передача данных во ViewModel, получение готового объекта
+                val newItem = viewModel.createNewItem(type, name, extra1, extra2)
                 val resultIntent = intent.apply {
                     putExtra("newItem", newItem as Serializable)
                 }

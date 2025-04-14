@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import android.content.Intent
 import java.io.Serializable
 
-class LibraryAdapter(private val libraryItems: MutableList<LibraryItem>) : RecyclerView.Adapter<LibraryAdapter.LibraryViewHolder>() {
+class LibraryAdapter(private var libraryItems: MutableList<LibraryItem>) : RecyclerView.Adapter<LibraryAdapter.LibraryViewHolder>() {
 
     // Вложенный класс для хранения ссылок на вьюшки элемента списка
     class LibraryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -49,7 +49,7 @@ class LibraryAdapter(private val libraryItems: MutableList<LibraryItem>) : Recyc
             is Book -> R.drawable.ic_book
             is Newspaper -> R.drawable.ic_newspaper
             is Disc -> R.drawable.ic_disc
-            else -> R.drawable.ic_book  // Вариант по умолчанию
+            else -> R.drawable.ic_default  // Вариант по умолчанию
         }
         holder.itemIcon.setImageResource(iconRes)
 
@@ -71,5 +71,11 @@ class LibraryAdapter(private val libraryItems: MutableList<LibraryItem>) : Recyc
     fun removeItem(position: Int) {
         libraryItems.removeAt(position)
         notifyItemRemoved(position)
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun updateItems(newItems: MutableList<LibraryItem>) {
+        libraryItems = newItems
+        notifyDataSetChanged()
     }
 }
