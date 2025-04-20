@@ -8,12 +8,11 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
-import android.content.Intent
-import java.io.Serializable
 
-class LibraryAdapter(private val libraryItems: MutableList<LibraryItem>) : RecyclerView.Adapter<LibraryAdapter.LibraryViewHolder>() {
+class LibraryAdapter(private val libraryItems: List<LibraryItem>) : RecyclerView.Adapter<LibraryAdapter.LibraryViewHolder>() {
 
-    // Вложенный класс для хранения ссылок на вьюшки элемента списка
+    var onItemClick: ((LibraryItem) -> Unit)? = null
+
     class LibraryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val cardView: CardView = itemView.findViewById(R.id.card_view)
         val itemIcon: ImageView = itemView.findViewById(R.id.item_icon)
@@ -31,45 +30,24 @@ class LibraryAdapter(private val libraryItems: MutableList<LibraryItem>) : Recyc
     override fun onBindViewHolder(holder: LibraryViewHolder, position: Int) {
         val item = libraryItems[position]
 
-        // Установка текста
         holder.itemName.text = item.getName()
         holder.itemId.text = "ID: ${item.getId()}"
-
-        // Настройка прозрачности текста для недоступных элементов
         val alphaValue = if (item.isAvailable()) 1f else 0.3f
         holder.itemName.alpha = alphaValue
         holder.itemId.alpha = alphaValue
-
-        // Установка подъема карточки
         val elevationDp = if (item.isAvailable()) 10 else 1
         holder.cardView.cardElevation = elevationDp * holder.itemView.context.resources.displayMetrics.density
-
-        // Установка соответствующей иконки по типу элемента
         val iconRes = when (item) {
             is Book -> R.drawable.ic_book
             is Newspaper -> R.drawable.ic_newspaper
             is Disc -> R.drawable.ic_disc
-            else -> R.drawable.ic_book  // Вариант по умолчанию
+            else -> R.drawable.ic_default
         }
         holder.itemIcon.setImageResource(iconRes)
-
-        // Обработка клика
         holder.itemView.setOnClickListener {
-            val context = holder.itemView.context
-            // Запуск нового экрана для просмотра деталей
-            val intent = Intent(context, ItemDetailActivity::class.java).apply {
-                putExtra("libraryItem", item as Serializable)
-                putExtra("editable", false)
-            }
-            context.startActivity(intent)
+            onItemClick?.invoke(item)
         }
     }
 
     override fun getItemCount(): Int = libraryItems.size
-
-    // Метод для удаления элемента при свайпе
-    fun removeItem(position: Int) {
-        libraryItems.removeAt(position)
-        notifyItemRemoved(position)
-    }
 }
