@@ -9,7 +9,8 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 
-class LibraryAdapter(private val libraryItems: List<LibraryItem>) : RecyclerView.Adapter<LibraryAdapter.LibraryViewHolder>() {
+class LibraryAdapter(var libraryItems: List<LibraryItem>) :
+    RecyclerView.Adapter<LibraryAdapter.LibraryViewHolder>() {
 
     var onItemClick: ((LibraryItem) -> Unit)? = null
 
@@ -50,4 +51,10 @@ class LibraryAdapter(private val libraryItems: List<LibraryItem>) : RecyclerView
     }
 
     override fun getItemCount(): Int = libraryItems.size
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun updateList(newItems: List<LibraryItem>) {
+        libraryItems = newItems
+        notifyDataSetChanged()
+    }
 }

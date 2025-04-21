@@ -1,24 +1,52 @@
 package com.example.librarymanagementsystem
 
-object MainViewModel {
-    private val libraryItems = mutableListOf<LibraryItem>(
-        Book(90743, true, "Маугли", 202, "Джозеф Киплинг"),
-        Book(1001, true, "Война и мир", 1225, "Лев Толстой"),
-        Newspaper(17245, true, "Сельская жизнь", 794, 4),
-        Newspaper(17246, true, "Новости дня", 123, 2),
-        Disc(2001, true, "Дэдпул и Росомаха", DiscType.DVD),
-        Disc(2002, true, "Лучшие хиты", DiscType.CD)
-    )
+import androidx.lifecycle.*
+import com.example.librarymanagementsystem.repository.LibraryRepository
+import kotlinx.coroutines.launch
 
-    fun getLibraryItems(): MutableList<LibraryItem> = libraryItems
+class MainViewModel : ViewModel() {
 
-    fun addLibraryItem(item: LibraryItem) {
-        libraryItems.add(item)
+    private val _items = MutableLiveData<List<LibraryItem>>()
+    val items: LiveData<List<LibraryItem>> = _items
+
+    private val _error = MutableLiveData<String?>()
+    val error: LiveData<String?> = _error
+
+    init {
+        loadItems()
     }
 
-    // Новый метод для удаления элемента
-    fun removeLibraryItem(item: LibraryItem) {
-        libraryItems.remove(item)
+    fun loadItems() {
+        viewModelScope.launch {
+            try {
+                _error.value = null
+                val data = LibraryRepository.getItems()
+                _items.value = data
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Неизвестная ошибка"
+            }
+        }
+    }
+
+    fun addItem(item: LibraryItem) {
+        viewModelScope.launch {
+            try {
+                LibraryRepository.addItem(item)
+                loadItems()
+            } catch (e: Exception) {
+                _error.value = e.message
+            }
+        }
+    }
+
+    fun removeItem(item: LibraryItem) {
+        viewModelScope.launch {
+            try {
+                LibraryRepository.removeItem(item)
+                loadItems()
+            } catch (e: Exception) {
+                _error.value = e.message
+            }
+        }
     }
 }
-

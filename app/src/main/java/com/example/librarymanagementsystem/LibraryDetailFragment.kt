@@ -2,12 +2,16 @@ package com.example.librarymanagementsystem
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.*
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 
 class LibraryDetailFragment : Fragment() {
 
+    private val mainViewModel: MainViewModel by activityViewModels()
     private var item: LibraryItem? = null
     private var isNewItem: Boolean = false
 
@@ -83,9 +87,9 @@ class LibraryDetailFragment : Fragment() {
                 val extra1 = editTextExtra1.text.toString()
                 val extra2 = editTextExtra2.text.toString()
                 // Создание нового элемента с помощью ViewModel для деталей
-                val newItem = ItemDetailViewModel().createNewItem(type, name, extra1, extra2)
-                // Добавление созданного элемента в общий список (через MainViewModel)
-                MainViewModel.addLibraryItem(newItem)
+                val newItem = ItemDetailViewModel()
+                    .createNewItem(type, name, extra1, extra2)
+                mainViewModel.addItem(newItem)
                 Toast.makeText(context, "Элемент сохранён", Toast.LENGTH_SHORT).show()
             }
             // В портретном режиме: переход назад

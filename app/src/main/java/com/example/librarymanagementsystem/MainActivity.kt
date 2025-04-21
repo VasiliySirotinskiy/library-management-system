@@ -4,7 +4,8 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 
-class MainActivity : AppCompatActivity(), LibraryListFragment.OnItemSelectedListener {
+class MainActivity : AppCompatActivity(),
+    LibraryListFragment.OnItemSelectedListener {
 
     var twoPane: Boolean = false
         private set
@@ -12,8 +13,6 @@ class MainActivity : AppCompatActivity(), LibraryListFragment.OnItemSelectedList
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        // Определение, используется ли двухпанельный режим по наличию контейнера деталей
         twoPane = findViewById<View>(R.id.detail_fragment_container) != null
 
         if (twoPane) {
@@ -40,7 +39,7 @@ class MainActivity : AppCompatActivity(), LibraryListFragment.OnItemSelectedList
         }
     }
 
-    override fun onItemSelected(item: LibraryItem, isNew: Boolean) {
+    override fun onItemSelected(item: LibraryItem?, isNew: Boolean) {
         val detailFragment = LibraryDetailFragment.newInstance(item, isNew)
         if (twoPane) {
             supportFragmentManager.beginTransaction()
