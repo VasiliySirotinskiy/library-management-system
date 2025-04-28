@@ -3,6 +3,7 @@ package com.example.librarymanagementsystem
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import com.example.librarymanagementsystem.domain.LibraryItem
 
 class MainActivity : AppCompatActivity(),
     LibraryListFragment.OnItemSelectedListener {

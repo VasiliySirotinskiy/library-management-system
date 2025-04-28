@@ -1,6 +1,7 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.kapt")
 }
 
 android {
@@ -9,10 +10,10 @@ android {
 
     defaultConfig {
         applicationId = "com.example.librarymanagementsystem"
-        minSdk = 24
-        targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        minSdk        = 24
+        targetSdk     = 35
+        versionCode   = 1
+        versionName   = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -36,12 +37,15 @@ android {
 }
 
 dependencies {
-
-    implementation (libs.androidx.fragment.ktx)
-    implementation (libs.kotlinx.coroutines.android)
-    implementation (libs.androidx.lifecycle.viewmodel.ktx)
-    implementation (libs.androidx.lifecycle.livedata.ktx)
-    implementation (libs.shimmer)
+    implementation(libs.kotlin.stdlib.v1924)
+    implementation(libs.androidx.room.runtime.v261)
+    kapt(libs.androidx.room.compiler.v261)
+    implementation(libs.androidx.room.ktx.v261)
+    implementation(libs.androidx.fragment.ktx)
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.lifecycle.livedata.ktx)
+    implementation(libs.shimmer)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -49,8 +53,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.recyclerview)
     implementation(libs.androidx.cardview)
-    testImplementation(libs.junit)
+    testImplementation       (libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-
 }
