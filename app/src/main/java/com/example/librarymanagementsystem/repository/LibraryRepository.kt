@@ -1,38 +1,59 @@
 package com.example.librarymanagementsystem.repository
 
-import com.example.librarymanagementsystem.Book
-import com.example.librarymanagementsystem.Disc
-import com.example.librarymanagementsystem.DiscType
-import com.example.librarymanagementsystem.LibraryItem
-import com.example.librarymanagementsystem.Newspaper
-import kotlinx.coroutines.delay
-import kotlin.random.Random
+import android.content.SharedPreferences
+import com.example.librarymanagementsystem.data.db.LibraryDao
+import com.example.librarymanagementsystem.data.db.toDomain
+import com.example.librarymanagementsystem.data.db.toEntity
+import com.example.librarymanagementsystem.domain.LibraryItem
 
-object LibraryRepository {
-    private val items = mutableListOf<LibraryItem>(
-        Book(90743, true, "Маугли", 202, "Джозеф Киплинг"),
-        Book(1001,  true, "Война и мир", 1225, "Лев Толстой"),
-        Newspaper(17245, true, "Сельская жизнь", 794, 4),
-        Newspaper(17246, true, "Новости дня",   123, 2),
-        Disc(2001, true, "Дэдпул и Росомаха", DiscType.DVD),
-        Disc(2002, true, "Лучшие хиты",        DiscType.CD)
-    )
-    private var fetchCount = 0
+class LibraryRepository(
+    private val dao: LibraryDao,
+    private val prefs: SharedPreferences
+) {
+    private val SCREEN_COUNT = 3
+    private val APPROX_ON_SCREEN = 10
+    private val N = SCREEN_COUNT * APPROX_ON_SCREEN
+    private val HALF = N / 2
 
-    suspend fun getItems(): List<LibraryItem> {
-        delay(Random.nextLong(100, 2000))
-        fetchCount++
-        if (fetchCount % 5 == 0) throw Exception("Не удалось загрузить список")
-        return items.toList()
+    var sortByName: Boolean
+        get() = prefs.getBoolean("sortByName", true)
+        set(v) = prefs.edit().putBoolean("sortByName", v).apply()
+
+    suspend fun initialLoad(): List<LibraryItem> {
+        val entities = if (sortByName) {
+            dao.loadInitialByName(N)
+        } else {
+            dao.loadInitialByDate(N)
+        }
+        return entities.map { it.toDomain() }
     }
 
-    suspend fun addItem(item: LibraryItem) {
-        delay(Random.nextLong(100, 2000))
-        items.add(item)
+    suspend fun loadAfter(current: List<LibraryItem>): Pair<List<LibraryItem>, Int> {
+        if (current.isEmpty()) return emptyList<LibraryItem>() to 0
+        val last = current.last()
+        val entities = if (sortByName) {
+            dao.loadAfterByName(last.id, HALF)
+        } else {
+            dao.loadAfterByDate(last.id, HALF)
+        }
+        return entities.map { it.toDomain() } to HALF
     }
 
-    suspend fun removeItem(item: LibraryItem) {
-        delay(Random.nextLong(100, 2000))
-        items.remove(item)
+    suspend fun loadBefore(current: List<LibraryItem>): Pair<List<LibraryItem>, Int> {
+        if (current.isEmpty()) return emptyList<LibraryItem>() to 0
+        val first = current.first()
+        val entities = if (sortByName) {
+            dao.loadBeforeByName(first.id, HALF)
+        } else {
+            dao.loadBeforeByDate(first.id, HALF)
+        }
+        return entities.map { it.toDomain() } to HALF
+    }
+
+    suspend fun add(item: LibraryItem) {
+        dao.insert(item.toEntity())
+    }
+    suspend fun remove(item: LibraryItem) {
+        dao.delete(item.toEntity())
     }
 }

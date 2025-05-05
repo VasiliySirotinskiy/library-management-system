@@ -8,9 +8,14 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.librarymanagementsystem.domain.Book
+import com.example.librarymanagementsystem.domain.Disc
+import com.example.librarymanagementsystem.domain.LibraryItem
+import com.example.librarymanagementsystem.domain.Newspaper
 
-class LibraryAdapter(var libraryItems: List<LibraryItem>) :
-    RecyclerView.Adapter<LibraryAdapter.LibraryViewHolder>() {
+class LibraryAdapter(
+    private var libraryItems: List<LibraryItem>
+) : RecyclerView.Adapter<LibraryAdapter.LibraryViewHolder>() {
 
     var onItemClick: ((LibraryItem) -> Unit)? = null
 
@@ -31,13 +36,15 @@ class LibraryAdapter(var libraryItems: List<LibraryItem>) :
     override fun onBindViewHolder(holder: LibraryViewHolder, position: Int) {
         val item = libraryItems[position]
 
-        holder.itemName.text = item.getName()
-        holder.itemId.text = "ID: ${item.getId()}"
-        val alphaValue = if (item.isAvailable()) 1f else 0.3f
+        holder.itemName.text = item.title
+        holder.itemId.text = "ID: ${item.id}"
+        val alphaValue = if (item.isAvailable) 1f else 0.3f
         holder.itemName.alpha = alphaValue
         holder.itemId.alpha = alphaValue
-        val elevationDp = if (item.isAvailable()) 10 else 1
-        holder.cardView.cardElevation = elevationDp * holder.itemView.context.resources.displayMetrics.density
+        val elevationDp = if (item.isAvailable) 10 else 1
+        holder.cardView.cardElevation =
+            elevationDp * holder.itemView.context.resources.displayMetrics.density
+
         val iconRes = when (item) {
             is Book -> R.drawable.ic_book
             is Newspaper -> R.drawable.ic_newspaper
@@ -45,6 +52,7 @@ class LibraryAdapter(var libraryItems: List<LibraryItem>) :
             else -> R.drawable.ic_default
         }
         holder.itemIcon.setImageResource(iconRes)
+
         holder.itemView.setOnClickListener {
             onItemClick?.invoke(item)
         }

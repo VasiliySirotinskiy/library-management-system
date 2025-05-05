@@ -5,28 +5,22 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.librarymanagementsystem.domain.LibraryItem
 import com.facebook.shimmer.ShimmerFrameLayout
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 class LibraryListFragment : Fragment() {
 
-    private val mainViewModel: MainViewModel by activityViewModels()
-    private lateinit var recyclerView: RecyclerView
+    private val vm: MainViewModel by activityViewModels()
     private lateinit var adapter: LibraryAdapter
-    private lateinit var shimmerView: ShimmerFrameLayout
+    private lateinit var shimmer: ShimmerFrameLayout
+    private lateinit var progress: ProgressBar
     private var listener: OnItemSelectedListener? = null
-
-    private var isFirstLoad = true
-    private var startTime = 0L
 
     interface OnItemSelectedListener {
         fun onItemSelected(item: LibraryItem?, isNew: Boolean)
@@ -42,75 +36,54 @@ class LibraryListFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
-        val view = inflater.inflate(R.layout.fragment_library_list, container, false)
+    ): View = inflater.inflate(R.layout.fragment_library_list, container, false).also { view ->
+        shimmer = view.findViewById(R.id.shimmer_view)
+        progress = view.findViewById(R.id.progress_bar)
+        val rv = view.findViewById<RecyclerView>(R.id.recycler_view_list)
 
-        shimmerView = view.findViewById(R.id.shimmer_view)
-        recyclerView = view.findViewById(R.id.recycler_view_list)
-        recyclerView.layoutManager = LinearLayoutManager(context)
+        rv.layoutManager = LinearLayoutManager(context)
         adapter = LibraryAdapter(emptyList())
+        rv.adapter = adapter
         adapter.onItemClick = { item -> listener?.onItemSelected(item, false) }
-        recyclerView.adapter = adapter
 
-        // Инициализация видимости в зависимости от первого показа
-        if (isFirstLoad) {
-            startTime = System.currentTimeMillis()
-            shimmerView.startShimmer()
-            recyclerView.visibility = View.GONE
-        } else {
-            shimmerView.stopShimmer()
-            shimmerView.visibility = View.GONE
-            recyclerView.visibility = View.VISIBLE
-        }
-
-        mainViewModel.items.observe(viewLifecycleOwner) { list ->
-            lifecycleScope.launch {
-                if (isFirstLoad) {
-                    // Обеспечение минимальной длительности шиммера
-                    val elapsed = System.currentTimeMillis() - startTime
-                    if (elapsed < 1_000) delay(1_000 - elapsed)
-
-                    shimmerView.stopShimmer()
-                    shimmerView.visibility = View.GONE
-                    recyclerView.visibility = View.VISIBLE
-
-                    // Шиммер больше не нужен для следующих обновлений
-                    isFirstLoad = false
-                }
-                // Обновление адаптера независимо от первой или последующих загрузок
-                adapter.updateList(list)
+        // Шиммер для первой загрузки
+        vm.loading.observe(viewLifecycleOwner) { loading ->
+            if (loading && adapter.itemCount == 0) {
+                shimmer.startShimmer()
+                shimmer.visibility = View.VISIBLE
+                rv.visibility = View.GONE
+            } else {
+                shimmer.stopShimmer()
+                shimmer.visibility = View.GONE
+                rv.visibility = View.VISIBLE
+            }
+            // Прогресс при подгрузке страниц
+            progress.visibility = if (loading && adapter.itemCount > 0) {
+                View.VISIBLE
+            } else {
+                View.GONE
             }
         }
 
-        mainViewModel.error.observe(viewLifecycleOwner) { err ->
+        vm.items.observe(viewLifecycleOwner) { list ->
+            adapter.updateList(list)
+        }
+
+        vm.error.observe(viewLifecycleOwner) { err ->
             err?.let { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() }
         }
 
-        // Свайп для удаления
-        val swipeHandler = object : ItemTouchHelper.SimpleCallback(
-            0,
-            ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
-        ) {
-            override fun onMove(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-                target: RecyclerView.ViewHolder
-            ): Boolean = false
-
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                val pos = viewHolder.bindingAdapterPosition
-                val item = adapter.libraryItems[pos]
-                mainViewModel.removeItem(item)
+        // Бесконечный скролл
+        rv.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
+                val lastPos = (rv.layoutManager as LinearLayoutManager)
+                    .findLastVisibleItemPosition()
+                vm.loadMoreIfNeeded(lastPos)
             }
-        }
-        ItemTouchHelper(swipeHandler).attachToRecyclerView(recyclerView)
+        })
 
-        // Кнопка добавления нового элемента
-        view.findViewById<FloatingActionButton>(R.id.fab_add)
-            .setOnClickListener {
-                listener?.onItemSelected(null, true)
-            }
-
-        return view
+        // FAB
+        view.findViewById<View>(R.id.fab_add)
+            .setOnClickListener { listener?.onItemSelected(null, true) }
     }
 }
