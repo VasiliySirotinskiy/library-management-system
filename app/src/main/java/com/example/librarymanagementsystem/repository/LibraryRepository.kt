@@ -5,6 +5,7 @@ import com.example.librarymanagementsystem.data.db.LibraryDao
 import com.example.librarymanagementsystem.data.db.toDomain
 import com.example.librarymanagementsystem.data.db.toEntity
 import com.example.librarymanagementsystem.domain.LibraryItem
+import androidx.core.content.edit
 
 class LibraryRepository(
     private val dao: LibraryDao,
@@ -17,7 +18,7 @@ class LibraryRepository(
 
     var sortByName: Boolean
         get() = prefs.getBoolean("sortByName", true)
-        set(v) = prefs.edit().putBoolean("sortByName", v).apply()
+        set(v) = prefs.edit() { putBoolean("sortByName", v) }
 
     suspend fun initialLoad(): List<LibraryItem> {
         val entities = if (sortByName) {
