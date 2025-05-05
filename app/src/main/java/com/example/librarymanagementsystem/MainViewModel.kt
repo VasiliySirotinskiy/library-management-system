@@ -13,6 +13,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val prefs = app.getSharedPreferences("prefs", Context.MODE_PRIVATE)
     private val repo = LibraryRepository(dao, prefs)
 
+    val sortByName: Boolean
+    get() = repo.sortByName
+
     private val _items = MutableLiveData<List<LibraryItem>>(emptyList())
     val items: LiveData<List<LibraryItem>> = _items
 

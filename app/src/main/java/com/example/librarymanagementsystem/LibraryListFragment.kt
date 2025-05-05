@@ -2,13 +2,12 @@ package com.example.librarymanagementsystem
 
 import android.content.Context
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.librarymanagementsystem.domain.LibraryItem
@@ -32,6 +31,11 @@ class LibraryListFragment : Fragment() {
             ?: throw RuntimeException("$context must implement OnItemSelectedListener")
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -46,7 +50,23 @@ class LibraryListFragment : Fragment() {
         rv.adapter = adapter
         adapter.onItemClick = { item -> listener?.onItemSelected(item, false) }
 
-        // Шиммер для первой загрузки
+        // Свайп для удаления
+        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
+            0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
+        ) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ) = false
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val pos = viewHolder.adapterPosition
+                vm.items.value?.get(pos)?.let { vm.remove(it) }
+            }
+        }).attachToRecyclerView(rv)
+
+        // Шиммер и прогресс-бар
         vm.loading.observe(viewLifecycleOwner) { loading ->
             if (loading && adapter.itemCount == 0) {
                 shimmer.startShimmer()
@@ -57,12 +77,7 @@ class LibraryListFragment : Fragment() {
                 shimmer.visibility = View.GONE
                 rv.visibility = View.VISIBLE
             }
-            // Прогресс при подгрузке страниц
-            progress.visibility = if (loading && adapter.itemCount > 0) {
-                View.VISIBLE
-            } else {
-                View.GONE
-            }
+            progress.visibility = if (loading && adapter.itemCount > 0) View.VISIBLE else View.GONE
         }
 
         vm.items.observe(viewLifecycleOwner) { list ->
@@ -73,7 +88,7 @@ class LibraryListFragment : Fragment() {
             err?.let { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() }
         }
 
-        // Бесконечный скролл
+        // Инфинити скролл
         rv.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
                 val lastPos = (rv.layoutManager as LinearLayoutManager)
@@ -82,8 +97,31 @@ class LibraryListFragment : Fragment() {
             }
         })
 
-        // FAB
+        // FAB для добавления
         view.findViewById<View>(R.id.fab_add)
             .setOnClickListener { listener?.onItemSelected(null, true) }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        menu.clear()
+        inflater.inflate(R.menu.menu_library_list, menu)
+        menu.findItem(R.id.action_sort_name).isChecked = vm.sortByName
+        menu.findItem(R.id.action_sort_date).isChecked = !vm.sortByName
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_sort_name -> {
+                vm.toggleSort(byName = true)
+                requireActivity().invalidateOptionsMenu()
+                true
+            }
+            R.id.action_sort_date -> {
+                vm.toggleSort(byName = false)
+                requireActivity().invalidateOptionsMenu()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 }
