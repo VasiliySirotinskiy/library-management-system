@@ -37,6 +37,10 @@ android {
 }
 
 dependencies {
+    implementation(libs.retrofit)
+    implementation(libs.converter.moshi)
+    implementation(libs.logging.interceptor)
+    implementation(libs.moshi.kotlin)
     implementation(libs.kotlin.stdlib.v1924)
     implementation(libs.androidx.room.runtime.v261)
     kapt(libs.androidx.room.compiler.v261)
