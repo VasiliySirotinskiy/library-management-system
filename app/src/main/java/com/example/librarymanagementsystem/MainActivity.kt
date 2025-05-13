@@ -4,6 +4,8 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import com.example.librarymanagementsystem.domain.LibraryItem
+import com.example.librarymanagementsystem.ui.LibraryDetailFragment
+import com.example.librarymanagementsystem.ui.LibraryListFragment
 
 class MainActivity : AppCompatActivity(),
     LibraryListFragment.OnItemSelectedListener {

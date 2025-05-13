@@ -1,4 +1,4 @@
-package com.example.librarymanagementsystem
+package com.example.librarymanagementsystem.common
 
 // Вспомогательная функция для преобразования номера месяца в кириллическое название
 fun getMonthName(month: Int): String = when (month) {

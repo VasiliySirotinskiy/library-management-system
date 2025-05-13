@@ -1,4 +1,4 @@
-package com.example.librarymanagementsystem
+package com.example.librarymanagementsystem.ui
 
 import android.content.Context
 import android.os.Bundle
@@ -8,10 +8,12 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import com.example.librarymanagementsystem.MainViewModel
 import com.example.librarymanagementsystem.domain.Book
 import com.example.librarymanagementsystem.domain.Disc
 import com.example.librarymanagementsystem.domain.LibraryItem
 import com.example.librarymanagementsystem.domain.Newspaper
+import com.example.librarymanagementsystem.R
 
 class LibraryDetailFragment : Fragment() {
 

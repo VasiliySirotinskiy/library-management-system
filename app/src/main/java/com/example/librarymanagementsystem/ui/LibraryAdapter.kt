@@ -1,4 +1,4 @@
-package com.example.librarymanagementsystem
+package com.example.librarymanagementsystem.ui
 
 import android.annotation.SuppressLint
 import android.view.LayoutInflater
@@ -12,6 +12,7 @@ import com.example.librarymanagementsystem.domain.Book
 import com.example.librarymanagementsystem.domain.Disc
 import com.example.librarymanagementsystem.domain.LibraryItem
 import com.example.librarymanagementsystem.domain.Newspaper
+import com.example.librarymanagementsystem.R
 
 class LibraryAdapter(
     private var libraryItems: List<LibraryItem>

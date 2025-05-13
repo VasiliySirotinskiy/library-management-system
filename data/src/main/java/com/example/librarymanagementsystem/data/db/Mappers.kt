@@ -4,6 +4,7 @@ import com.example.librarymanagementsystem.domain.Book
 import com.example.librarymanagementsystem.domain.Disc
 import com.example.librarymanagementsystem.domain.LibraryItem
 import com.example.librarymanagementsystem.domain.Newspaper
+import com.example.librarymanagementsystem.data.db.LibraryItemEntity
 
 fun LibraryItemEntity.toDomain(): LibraryItem = when (itemType) {
     "Book" -> Book(
