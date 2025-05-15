@@ -1,4 +1,4 @@
-package com.example.librarymanagementsystem
+package com.example.librarymanagementsystem.ui
 
 import android.content.Context
 import android.os.Bundle
@@ -11,9 +11,11 @@ import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.librarymanagementsystem.MainViewModel
+import com.example.librarymanagementsystem.data.model.GoogleBook
 import com.example.librarymanagementsystem.domain.Book
 import com.example.librarymanagementsystem.domain.LibraryItem
-import com.example.librarymanagementsystem.ui.GoogleBooksAdapter
+import com.example.librarymanagementsystem.R
 import com.facebook.shimmer.ShimmerFrameLayout
 
 class LibraryListFragment : Fragment() {
@@ -57,14 +59,24 @@ class LibraryListFragment : Fragment() {
 
         // Основные адаптеры
         rv.layoutManager = LinearLayoutManager(context)
-        adapter    = LibraryAdapter(emptyList())
-        gbAdapter  = GoogleBooksAdapter(emptyList())
+        adapter   = LibraryAdapter(emptyList())
+        gbAdapter = GoogleBooksAdapter(emptyList())
         rv.adapter = adapter
 
         // Клики
-        adapter.onItemClick = { item -> listener?.onItemSelected(item, false) }
-        gbAdapter.onItemLongClick = { book ->
-            val newBook = Book(0L, book.title, System.currentTimeMillis(), true, book.pageCount, book.authors)
+        adapter.onItemClick = { item ->
+            listener?.onItemSelected(item, false)
+        }
+        gbAdapter.onItemLongClick = { book: GoogleBook ->
+            // При долгом нажатии – сохранение в БД
+            val newBook = Book(
+                id          = 0L,
+                title       = book.title,
+                addedAt     = System.currentTimeMillis(),
+                isAvailable = true,
+                pages       = book.pageCount,
+                author      = book.authors
+            )
             vm.add(newBook)
             Toast.makeText(context, "Сохранено в библиотеку", Toast.LENGTH_SHORT).show()
         }
@@ -105,7 +117,9 @@ class LibraryListFragment : Fragment() {
 
         // Свайп для удаления
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
-            override fun onMove(rv: RecyclerView, vh: RecyclerView.ViewHolder, t: RecyclerView.ViewHolder) = false
+            override fun onMove(
+                rv: RecyclerView, vh: RecyclerView.ViewHolder, t: RecyclerView.ViewHolder
+            ) = false
             override fun onSwiped(vh: RecyclerView.ViewHolder, dir: Int) {
                 vm.items.value?.get(vh.adapterPosition)?.let { vm.remove(it) }
             }
@@ -114,26 +128,34 @@ class LibraryListFragment : Fragment() {
         // Наблюдатели загрузки/ошибок
         vm.loading.observe(viewLifecycleOwner) { loading ->
             if (rv.adapter === adapter) {
-                shimmer.visibility = if (loading && adapter.itemCount == 0) View.VISIBLE else View.GONE
-                rv.visibility      = if (shimmer.visibility == View.GONE) View.VISIBLE else View.GONE
-                progress.visibility= if (loading && adapter.itemCount > 0) View.VISIBLE else View.GONE
+                shimmer.visibility  = if (loading && adapter.itemCount == 0) View.VISIBLE else View.GONE
+                rv.visibility       = if (shimmer.visibility == View.GONE) View.VISIBLE else View.GONE
+                progress.visibility = if (loading && adapter.itemCount > 0) View.VISIBLE else View.GONE
             }
         }
-
         vm.gbLoading.observe(viewLifecycleOwner) { loading ->
             if (rv.adapter === gbAdapter) {
-                shimmer.visibility = if (loading) View.VISIBLE else View.GONE
-                rv.visibility      = if (shimmer.visibility == View.GONE) View.VISIBLE else View.GONE
-                progress.visibility= if (loading && gbAdapter.itemCount > 0) View.VISIBLE else View.GONE
+                shimmer.visibility  = if (loading) View.VISIBLE else View.GONE
+                rv.visibility       = if (shimmer.visibility == View.GONE) View.VISIBLE else View.GONE
+                progress.visibility = if (loading && gbAdapter.itemCount > 0) View.VISIBLE else View.GONE
             }
         }
-        vm.error.observe(viewLifecycleOwner) { err -> err?.let { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() } }
-        vm.gbError.observe(viewLifecycleOwner) { err -> err?.let { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() } }
+        vm.error.observe(viewLifecycleOwner) { err ->
+            err?.let { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() }
+        }
+        vm.gbError.observe(viewLifecycleOwner) { err ->
+            err?.let { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() }
+        }
 
         // Обновление списков
-        vm.items.observe(viewLifecycleOwner) { if (rv.adapter === adapter) adapter.updateList(it) }
-        vm.gbResults.observe(viewLifecycleOwner) { if (rv.adapter === gbAdapter) gbAdapter.update(it) }
+        vm.items.observe(viewLifecycleOwner) { list ->
+            if (rv.adapter === adapter) adapter.updateList(list)
+        }
+        vm.gbResults.observe(viewLifecycleOwner) { list: List<GoogleBook> ->
+            if (rv.adapter === gbAdapter) gbAdapter.update(list)
+        }
 
+        // Пагинация на пролистывание
         rv.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
                 val lastPos = (rv.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
@@ -155,8 +177,16 @@ class LibraryListFragment : Fragment() {
 
     @Deprecated("Deprecated in Java")
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
-        R.id.action_sort_name -> { vm.toggleSort(true); requireActivity().invalidateOptionsMenu(); true }
-        R.id.action_sort_date -> { vm.toggleSort(false); requireActivity().invalidateOptionsMenu(); true }
+        R.id.action_sort_name -> {
+            vm.toggleSort(true)
+            requireActivity().invalidateOptionsMenu()
+            true
+        }
+        R.id.action_sort_date -> {
+            vm.toggleSort(false)
+            requireActivity().invalidateOptionsMenu()
+            true
+        }
         else -> super.onOptionsItemSelected(item)
     }
 }
