@@ -8,7 +8,7 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.librarymanagementsystem.R
-import com.example.librarymanagementsystem.data.model.GoogleBook
+import com.example.librarymanagementsystem.domain.model.GoogleBook
 
 class GoogleBooksAdapter(
     private var items: List<GoogleBook>
@@ -32,9 +32,9 @@ class GoogleBooksAdapter(
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: VH, position: Int) {
         val book = items[position]
-        holder.title.text       = book.title
-        holder.authors.text     = book.authors
-        holder.pagesCount.text  = "стр. ${book.pageCount}"
+        holder.title.text      = book.title
+        holder.authors.text    = book.authors
+        holder.pagesCount.text = "стр. ${book.pageCount}"
         holder.card.setOnLongClickListener {
             onItemLongClick?.invoke(book)
             true

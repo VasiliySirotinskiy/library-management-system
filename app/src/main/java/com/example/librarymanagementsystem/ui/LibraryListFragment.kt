@@ -11,8 +11,9 @@ import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.librarymanagementsystem.LibraryApp
 import com.example.librarymanagementsystem.MainViewModel
-import com.example.librarymanagementsystem.data.model.GoogleBook
+import com.example.librarymanagementsystem.domain.model.GoogleBook
 import com.example.librarymanagementsystem.domain.Book
 import com.example.librarymanagementsystem.domain.LibraryItem
 import com.example.librarymanagementsystem.R
@@ -20,7 +21,11 @@ import com.facebook.shimmer.ShimmerFrameLayout
 
 class LibraryListFragment : Fragment() {
 
-    private val vm: MainViewModel by activityViewModels()
+    private val vm: MainViewModel by activityViewModels {
+        (requireActivity().application as LibraryApp)
+            .appComponent
+            .viewModelFactory()
+    }
     private lateinit var adapter: LibraryAdapter
     private lateinit var gbAdapter: GoogleBooksAdapter
     private lateinit var shimmer: ShimmerFrameLayout
@@ -46,10 +51,10 @@ class LibraryListFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View = inflater.inflate(R.layout.fragment_library_list, container, false).also { view ->
-        shimmer    = view.findViewById(R.id.shimmer_view)
-        progress   = view.findViewById(R.id.progress_bar)
-        val rv     = view.findViewById<RecyclerView>(R.id.recycler_view_list)
-        fab         = view.findViewById(R.id.fab_add)
+        shimmer       = view.findViewById(R.id.shimmer_view)
+        progress      = view.findViewById(R.id.progress_bar)
+        val rv        = view.findViewById<RecyclerView>(R.id.recycler_view_list)
+        fab           = view.findViewById(R.id.fab_add)
         val btnLib    = view.findViewById<Button>(R.id.btn_library)
         val btnGBooks = view.findViewById<Button>(R.id.btn_google)
         val form      = view.findViewById<LinearLayout>(R.id.search_form)
@@ -59,7 +64,7 @@ class LibraryListFragment : Fragment() {
 
         // Основные адаптеры
         rv.layoutManager = LinearLayoutManager(context)
-        adapter   = LibraryAdapter(emptyList())
+        adapter = LibraryAdapter(emptyList())
         gbAdapter = GoogleBooksAdapter(emptyList())
         rv.adapter = adapter
 
@@ -121,7 +126,9 @@ class LibraryListFragment : Fragment() {
                 rv: RecyclerView, vh: RecyclerView.ViewHolder, t: RecyclerView.ViewHolder
             ) = false
             override fun onSwiped(vh: RecyclerView.ViewHolder, dir: Int) {
-                vm.items.value?.get(vh.adapterPosition)?.let { vm.remove(it) }
+                vm.items.value
+                    ?.getOrNull(vh.bindingAdapterPosition)
+                    ?.let { vm.remove(it) }
             }
         }).attachToRecyclerView(rv)
 
