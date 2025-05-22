@@ -1,12 +1,16 @@
 package com.example.librarymanagementsystem.data.repository
 
-import com.example.librarymanagementsystem.data.remote.RemoteModule
+import com.example.librarymanagementsystem.data.remote.BooksApi
 import com.example.librarymanagementsystem.data.remote.VolumeResponse
 import com.example.librarymanagementsystem.domain.model.GoogleBook
 import com.example.librarymanagementsystem.domain.repository.IGoogleBooksRepository
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class GoogleBooksRepositoryImpl : IGoogleBooksRepository {
-    private val api = RemoteModule.booksApi
+@Singleton
+class GoogleBooksRepositoryImpl @Inject constructor(
+    private val api: BooksApi
+) : IGoogleBooksRepository {
 
     override suspend fun search(author: String?, title: String?): List<GoogleBook> {
         val parts = mutableListOf<String>()

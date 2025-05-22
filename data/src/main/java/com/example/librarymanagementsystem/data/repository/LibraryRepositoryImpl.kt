@@ -6,8 +6,11 @@ import com.example.librarymanagementsystem.data.db.toDomain
 import com.example.librarymanagementsystem.data.db.toEntity
 import com.example.librarymanagementsystem.domain.LibraryItem
 import com.example.librarymanagementsystem.domain.repository.ILibraryRepository
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class LibraryRepositoryImpl(
+@Singleton
+class LibraryRepositoryImpl @Inject constructor(
     private val dao: LibraryDao,
     private val prefs: SharedPreferences
 ) : ILibraryRepository {

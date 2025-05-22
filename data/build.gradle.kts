@@ -36,6 +36,7 @@ android {
 dependencies {
     implementation(project(":common"))
     implementation(project(":domain"))
+    implementation(libs.javax.inject)
     implementation(libs.androidx.room.runtime.v261)
     implementation(libs.androidx.room.ktx.v261)
     kapt(libs.androidx.room.compiler.v261)
