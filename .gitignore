@@ -1,42 +1,32 @@
-### IntelliJ IDEA ###
-.idea/
-out/
-*.iml
-!**/src/main/**/out/
-!**/src/test/**/out/
-
-### Kotlin ###
-.kotlin/
+# Gradle
+.gradle/
 build/
-**/build/
-**/.gradle/
-gradle
-gradlew
-local
-settings.gradle
-build.gradle
+!gradle/wrapper/gradle-wrapper.jar
+gradle-app.setting
+gradle-app.properties
 
-### Eclipse ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-
-### VS Code ###
-.vscode/
-
-### Mac OS ###
+# OS
 .DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Kotlin/Java
+out/
+*.class
+
+# Local configuration
+local.properties
+
+# Kotlin specific
+*.kotlin_module
+
+# Build outputs
+/build/
